@@ -8,7 +8,10 @@ const data = async (req: NextApiRequest, res: NextApiResponse) => {
     if (APIKEY === undefined || APIKEY !== req.headers['legab-key'])
       return res.status(401).send('Unauthorized')
 
-    const data = await getCMRData()
+    const data = await getCMRData().catch((error) => {
+      console.log(error)
+      return res.status(500).send('Internal Server Error')
+    })
     return res.status(200).json(data)
   }
 

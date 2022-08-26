@@ -1,12 +1,12 @@
 import puppeteer from 'puppeteer'
 import hello from '../../pages/api/hello'
-import { wait } from '../utils'
+import { currencyToNumber, wait } from '../utils'
 import { getPageUtilities } from '../utils/puppeteer'
 
 export const getCMRData = async () => {
   const browser = await puppeteer.launch({
-    headless: false,
     slowMo: 100,
+    headless: false,
   })
   try {
     const page = await browser.newPage()
@@ -27,23 +27,28 @@ export const getCMRData = async () => {
       process.env.PASSWORD as string
     )
     await pageUtils.clickButtonWithContent('❯')
-    await wait(12000)
+    await wait(15000)
+
     const data = await page.evaluate(() => {
       const creditContainer = document.querySelector('app-credit-cards')
       const data = {
-        total:
-          creditContainer?.children[0].children[1].children[0].children[0]
-            .innerHTML,
+        total: creditContainer?.children[0].children[1].children[0].children[0]
+          .innerHTML as string,
         used: creditContainer?.children[0].children[4].children[0].children[0]
-          .innerHTML,
-        available:
-          creditContainer?.children[0].children[7].children[0].children[0]
-            .innerHTML,
+          .innerHTML as string,
+        available: creditContainer?.children[0].children[7].children[0]
+          .children[0].innerHTML as string,
       }
       return data
     })
     browser.close()
-    return data
+    return Object.keys(data).reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: currencyToNumber(data[key as keyof typeof data]),
+      }),
+      {}
+    )
   } catch (error) {
     console.log(error)
     browser.close()
