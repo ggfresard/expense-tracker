@@ -1,12 +1,14 @@
-import puppeteer from 'puppeteer'
-import hello from '../../pages/api/hello'
+import chromium from 'chrome-aws-lambda'
 import { currencyToNumber, wait } from '../utils'
 import { getPageUtilities } from '../utils/puppeteer'
 
 export const getCMRData = async () => {
-  const browser = await puppeteer.launch({
-    slowMo: 100,
+  const browser = await chromium.puppeteer.launch({
+    args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath,
     headless: false,
+    ignoreHTTPSErrors: true,
   })
   try {
     const page = await browser.newPage()
@@ -27,7 +29,7 @@ export const getCMRData = async () => {
       process.env.PASSWORD as string
     )
     await pageUtils.clickButtonWithContent('❯')
-    await wait(15000)
+    await wait(10000)
 
     const data = await page.evaluate(() => {
       const creditContainer = document.querySelector('app-credit-cards')
